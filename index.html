@@ -23,7 +23,6 @@
             margin: 0 auto;
         }
 
-        /* Header Styles */
         .header {
             background: white;
             border-radius: 15px;
@@ -71,7 +70,6 @@
             font-weight: bold;
         }
 
-        /* Add Subscription Form */
         .add-subscription {
             background: white;
             border-radius: 15px;
@@ -139,16 +137,6 @@
             background: #d32f2f;
         }
 
-        .btn-edit {
-            background: #ff9800;
-            color: white;
-        }
-
-        .btn-edit:hover {
-            background: #f57c00;
-        }
-
-        /* Subscriptions Table */
         .subscriptions-list {
             background: white;
             border-radius: 15px;
@@ -173,7 +161,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 600px; /* Ensures table is scrollable on mobile */
+            min-width: 600px;
         }
 
         th {
@@ -266,7 +254,6 @@
             color: rgb(255, 0, 0);
         }
 
-        /* Search and Filter */
         .search-bar {
             margin-bottom: 20px;
             display: flex;
@@ -293,7 +280,6 @@
             background: white;
         }
 
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -331,7 +317,6 @@
             flex-wrap: wrap;
         }
 
-        /* تحسينات الموبايل - إضافاتك مع تحسينات إضافية */
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -372,7 +357,7 @@
 
             .input-field {
                 padding: 15px;
-                font-size: 16px; /* منع التكبير التلقائي في iOS */
+                font-size: 16px;
             }
 
             .btn {
@@ -449,7 +434,6 @@
             }
         }
 
-        /* تحسينات للشاشات الصغيرة جداً */
         @media (max-width: 480px) {
             .stats-container {
                 grid-template-columns: 1fr;
@@ -485,19 +469,16 @@
             }
         }
 
-        /* تحسين اللمس للموبايل */
         .action-btn:active {
             transform: scale(0.95);
             opacity: 0.8;
         }
 
-        /* منع تحديد النص عند النقر المتكرر */
         .btn, .action-btn {
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
 
-        /* تحسين ظهور شريط التمرير */
         .table-container::-webkit-scrollbar {
             height: 4px;
         }
@@ -515,7 +496,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <h1>
                 <i>🚌</i>
@@ -537,7 +517,6 @@
             </div>
         </div>
 
-        <!-- Add Subscription Form -->
         <div class="add-subscription">
             <h2>
                 <i>➕</i>
@@ -554,14 +533,12 @@
             </div>
         </div>
 
-        <!-- Subscriptions List -->
         <div class="subscriptions-list">
             <h2>
                 <i>📋</i>
                 قائمة المشتركين
             </h2>
             
-            <!-- Search and Filter -->
             <div class="search-bar">
                 <input type="text" id="searchInput" class="search-input" placeholder="بحث بالاسم..." onkeyup="filterSubscriptions()">
                 <select id="filterStatus" class="filter-select" onchange="filterSubscriptions()">
@@ -572,7 +549,6 @@
                 </select>
             </div>
 
-            <!-- Table -->
             <div class="table-container">
                 <table id="subscriptionsTable">
                     <thead>
@@ -587,14 +563,12 @@
                         </tr>
                     </thead>
                     <tbody id="tableBody">
-                        <!-- Data will be inserted here dynamically -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- Edit Modal -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <h3>تعديل بيانات المشترك</h3>
@@ -610,20 +584,44 @@
         </div>
     </div>
 
-    <script>
-        // Sample data
-        let subscriptions = [
-            { id: 1, name: 'أحمد محمد', totalAmount: 500, paidAmount: 500 },
-            { id: 2, name: 'سارة علي', totalAmount: 500, paidAmount: 300 },
-            { id: 3, name: 'محمد حسن', totalAmount: 500, paidAmount: 0 }
-        ];
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAGaCr_R7AO_jMUFRYK84HXUrKexjjoLT8",
+            authDomain: "elmakook-bf12e.firebaseapp.com",
+            projectId: "elmakook-bf12e",
+            storageBucket: "elmakook-bf12e.firebasestorage.app",
+            messagingSenderId: "125995941398",
+            appId: "1:125995941398:web:6c6de82aafcc85a8c3ff37",
+            measurementId: "G-V7L53R0SRT"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
         let currentEditId = null;
 
         // Initialize the app
         function init() {
-            displaySubscriptions();
-            updateStats();
+            loadSubscriptions();
+        }
+
+        // Load subscriptions from Firebase
+        function loadSubscriptions() {
+            db.collection("subscribers").onSnapshot((snapshot) => {
+                window.subscriptions = [];
+                snapshot.forEach((doc) => {
+                    const sub = { id: doc.id, ...doc.data() };
+                    window.subscriptions.push(sub);
+                });
+                displaySubscriptions();
+                updateStats();
+            });
         }
 
         // Display subscriptions
@@ -631,7 +629,7 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const filterStatus = document.getElementById('filterStatus').value;
             
-            let filteredSubs = subscriptions.filter(sub => 
+            let filteredSubs = window.subscriptions.filter(sub => 
                 sub.name.toLowerCase().includes(searchTerm)
             );
 
@@ -670,13 +668,13 @@
                     </td>
                     <td>
                         <div class="action-buttons">
-                            <button class="action-btn pay-btn" onclick="addPayment(${sub.id})" title="إضافة دفعة">
+                            <button class="action-btn pay-btn" onclick="addPayment('${sub.id}')" title="إضافة دفعة">
                                 <i>💰</i>
                             </button>
-                            <button class="action-btn edit-btn" onclick="openEditModal(${sub.id})" title="تعديل">
+                            <button class="action-btn edit-btn" onclick="openEditModal('${sub.id}')" title="تعديل">
                                 <i>✏️</i>
                             </button>
-                            <button class="action-btn delete-btn" onclick="deleteSubscription(${sub.id})" title="حذف">
+                            <button class="action-btn delete-btn" onclick="deleteSubscription('${sub.id}')" title="حذف">
                                 <i>🗑️</i>
                             </button>
                         </div>
@@ -686,7 +684,6 @@
             });
         }
 
-        // Get subscription status
         function getSubscriptionStatus(sub) {
             if (sub.paidAmount >= sub.totalAmount) {
                 return 'مدفوع بالكامل';
@@ -697,7 +694,6 @@
             }
         }
 
-        // Get status class for styling
         function getStatusClass(status) {
             switch(status) {
                 case 'مدفوع بالكامل': return 'status-paid';
@@ -707,18 +703,16 @@
             }
         }
 
-        // Update statistics
         function updateStats() {
-            const total = subscriptions.length;
-            const paidFull = subscriptions.filter(s => s.paidAmount >= s.totalAmount).length;
-            const partial = subscriptions.filter(s => s.paidAmount > 0 && s.paidAmount < s.totalAmount).length;
+            const total = window.subscriptions.length;
+            const paidFull = window.subscriptions.filter(s => s.paidAmount >= s.totalAmount).length;
+            const partial = window.subscriptions.filter(s => s.paidAmount > 0 && s.paidAmount < s.totalAmount).length;
 
             document.getElementById('totalSubscribers').textContent = total;
             document.getElementById('paidFull').textContent = paidFull;
             document.getElementById('partialPayment').textContent = partial;
         }
 
-        // Add new subscription
         function addSubscription() {
             const name = document.getElementById('subName').value;
             const totalAmount = parseFloat(document.getElementById('subAmount').value);
@@ -734,29 +728,18 @@
                 return;
             }
 
-            const newSub = {
-                id: Date.now(),
-                name,
-                totalAmount,
-                paidAmount
-            };
-
-            subscriptions.push(newSub);
-            
-            // Clear form
-            document.getElementById('subName').value = '';
-            document.getElementById('subAmount').value = '';
-            document.getElementById('paidAmount').value = '';
-
-            displaySubscriptions();
-            updateStats();
+            db.collection("subscribers").add({
+                name: name,
+                totalAmount: totalAmount,
+                paidAmount: paidAmount
+            }).then(() => {
+                document.getElementById('subName').value = '';
+                document.getElementById('subAmount').value = '';
+                document.getElementById('paidAmount').value = '';
+            });
         }
 
-        // Add payment
         function addPayment(id) {
-            const sub = subscriptions.find(s => s.id === id);
-            if (!sub) return;
-
             const paymentAmount = prompt('أدخل مبلغ الدفعة:', '0');
             if (paymentAmount === null) return;
 
@@ -766,20 +749,22 @@
                 return;
             }
 
+            const sub = window.subscriptions.find(s => s.id === id);
+            if (!sub) return;
+
             const newPaidAmount = sub.paidAmount + amount;
             if (newPaidAmount > sub.totalAmount) {
                 alert('المبلغ المدفوع لا يمكن أن يكون أكبر من المبلغ الإجمالي');
                 return;
             }
 
-            sub.paidAmount = newPaidAmount;
-            displaySubscriptions();
-            updateStats();
+            db.collection("subscribers").doc(id).update({
+                paidAmount: newPaidAmount
+            });
         }
 
-        // Open edit modal
         function openEditModal(id) {
-            const sub = subscriptions.find(s => s.id === id);
+            const sub = window.subscriptions.find(s => s.id === id);
             if (!sub) return;
 
             currentEditId = id;
@@ -790,11 +775,7 @@
             document.getElementById('editModal').style.display = 'flex';
         }
 
-        // Save edit
         function saveEdit() {
-            const sub = subscriptions.find(s => s.id === currentEditId);
-            if (!sub) return;
-
             const newName = document.getElementById('editName').value;
             const newTotalAmount = parseFloat(document.getElementById('editTotalAmount').value);
             const newPaidAmount = parseFloat(document.getElementById('editPaidAmount').value);
@@ -809,36 +790,30 @@
                 return;
             }
 
-            sub.name = newName;
-            sub.totalAmount = newTotalAmount;
-            sub.paidAmount = newPaidAmount;
-
-            closeModal();
-            displaySubscriptions();
-            updateStats();
+            db.collection("subscribers").doc(currentEditId).update({
+                name: newName,
+                totalAmount: newTotalAmount,
+                paidAmount: newPaidAmount
+            }).then(() => {
+                closeModal();
+            });
         }
 
-        // Close modal
         function closeModal() {
             document.getElementById('editModal').style.display = 'none';
             currentEditId = null;
         }
 
-        // Delete subscription
         function deleteSubscription(id) {
             if (confirm('هل أنت متأكد من حذف هذا المشترك؟')) {
-                subscriptions = subscriptions.filter(s => s.id !== id);
-                displaySubscriptions();
-                updateStats();
+                db.collection("subscribers").doc(id).delete();
             }
         }
 
-        // Filter subscriptions
         function filterSubscriptions() {
             displaySubscriptions();
         }
 
-        // Close modal when clicking outside
         window.onclick = function(event) {
             const modal = document.getElementById('editModal');
             if (event.target === modal) {
@@ -846,7 +821,6 @@
             }
         }
 
-        // Initialize on page load
         init();
     </script>
 </body>
