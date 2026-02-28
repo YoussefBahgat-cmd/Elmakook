@@ -590,8 +590,9 @@
 
     <script>
         // Firebase configuration
+        // Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyAGaCr_R7AO_jMUFRYK84HXUrKexjjoLT8",
+            apiKey: window.env?.FIREBASE_API_KEY || "AIzaSyAGaCr_R7AO_jMUFRYK84HXUrKexjjoLT8",
             authDomain: "elmakook-bf12e.firebaseapp.com",
             projectId: "elmakook-bf12e",
             storageBucket: "elmakook-bf12e.firebasestorage.app",
@@ -825,3 +826,4 @@
     </script>
 </body>
 </html>
+
